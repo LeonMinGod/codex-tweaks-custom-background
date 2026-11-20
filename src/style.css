@@ -99,9 +99,15 @@
 /* 新版桌面壳在窗口框架与工作区分别绘制 page surface；这些叠加底色
    会遮住壁纸。只清除壳层，保留菜单、卡片和输入框的原生表面令牌。 */
 :root[data-codex-tweaks-cbgp-theme] [data-app-shell-page-surface="true"],
+:root[data-codex-tweaks-cbgp-theme] [data-app-shell-surface-backing="true"],
 :root[data-codex-tweaks-cbgp-theme] [data-app-shell-frame][data-app-shell-workspace-tab-chrome],
 :root[data-codex-tweaks-cbgp-theme] .app-shell-left-panel:not([data-app-shell-left-panel-appearance="content-surface"]) {
   background-color: transparent !important;
+}
+
+/* 新版壳层另外叠加深色渐变；仅改 background-color 仍会压暗壁纸。 */
+:root[data-codex-tweaks-cbgp-theme] [data-app-shell-page-surface="true"] {
+  background-image: none !important;
 }
 
 /* surface 是弹窗、卡片、输入框和 sticky 内容共用的原生令牌，不能全局

@@ -12,6 +12,15 @@
   isolation: isolate;
 }
 
+:is([data-codex-tweaks-cbgp-wallpaper], .ct-cbgp-preview)[data-image-layout="contain"] {
+  --ct-cbgp-image-size: contain;
+}
+
+:is([data-codex-tweaks-cbgp-wallpaper], .ct-cbgp-preview)[data-image-layout="tile"] {
+  --ct-cbgp-image-size: auto 50%;
+  --ct-cbgp-image-repeat: repeat;
+}
+
 /* 图片、背景磨砂和颜色遮罩拆成独立层：背景磨砂只模糊原图，遮罩颜色
    保持均匀；扩大图片层可避免高强度模糊在窗口边缘产生空白。 */
 [data-codex-tweaks-cbgp-wallpaper]::before,
@@ -25,11 +34,16 @@
   z-index: 0;
   inset: calc(-1 * var(--ct-cbgp-background-frost-overscan, 0px));
   background-image: var(--ct-cbgp-bg-image, none);
-  background-size: cover;
+  background-size: var(--ct-cbgp-image-size, cover);
   background-position: center;
-  background-repeat: no-repeat;
+  background-repeat: var(--ct-cbgp-image-repeat, no-repeat);
   filter: blur(var(--ct-cbgp-background-frost-blur, 0px));
   transition: filter 180ms ease, inset 180ms ease;
+}
+
+/* 完整显示以窗口边缘为准，避免磨砂扩大图片层后裁掉原图。 */
+[data-codex-tweaks-cbgp-wallpaper][data-image-layout="contain"]::before {
+  inset: 0;
 }
 
 [data-codex-tweaks-cbgp-wallpaper]::after {
@@ -994,17 +1008,15 @@
   margin: 0 0 10px;
 }
 
-/* 背景图默认会平铺且从 padding 盒起算，cover 缩放后描边下方会露出相邻
-   一块图像的边缘，在圆角边上显成一圈暗线。改为从 border 盒铺满且不平铺，
-   半透明描边只作为叠在图像边缘上的细线。 */
+/* 预览从 border 盒起算，确保半透明描边叠在图像边缘上。 */
 .ct-cbgp-preview {
   width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: 12px;
   background-color: rgba(128, 128, 128, 0.12);
-  background-size: cover;
+  background-size: var(--ct-cbgp-image-size, cover);
   background-position: center;
-  background-repeat: no-repeat;
+  background-repeat: var(--ct-cbgp-image-repeat, no-repeat);
   background-origin: border-box;
   border: 1px solid rgba(128, 128, 128, 0.18);
 }

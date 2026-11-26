@@ -15,11 +15,13 @@ import {
   writeStorageAndRemoveLegacy,
 } from "./storage-migration.js";
 import {
+  DEFAULT_IMAGE_LAYOUT,
   TRANSPARENT_BACKGROUND_KIND,
   canStoreBackgroundHistory,
   hasConfiguredBackgroundKind,
   isTransparentBackgroundActive,
   normalizeBackgroundKind as normalizeKind,
+  normalizeImageLayout,
 } from "./background-mode.js";
 import { isCodexPetRendererLocation } from "./renderer-scope.js";
 
@@ -303,6 +305,7 @@ export function activate({ api, node, ui }) {
       return {
         showButton: parsed.showButton !== false,
         backgroundEnabled: parsed.backgroundEnabled !== false,
+        imageLayout: normalizeImageLayout(parsed.imageLayout),
         buttonDock: normalizeButtonDock(parsed.buttonDock),
         buttonDockOffset: normalizeButtonDockOffset(parsed.buttonDockOffset),
         maskLightColor: normalizeMaskColor(
@@ -374,6 +377,7 @@ export function activate({ api, node, ui }) {
     return {
       showButton: true,
       backgroundEnabled: true,
+      imageLayout: DEFAULT_IMAGE_LAYOUT,
       buttonDock: DEFAULT_BUTTON_DOCK,
       buttonDockOffset: DEFAULT_BUTTON_DOCK_OFFSET,
       maskLightColor: MASK_DEFAULTS.light.color,
@@ -565,6 +569,7 @@ export function activate({ api, node, ui }) {
     );
     const url = state.backgroundEnabled ? resolveBackgroundUrl() : null;
     const node = ensureWallpaperNode();
+    node.dataset.imageLayout = state.imageLayout;
     applyMaskVariables(node);
     applyBackgroundFrostAppearance(node);
     node.toggleAttribute(TRANSPARENT_MARKER, transparent);
@@ -1554,7 +1559,7 @@ export function activate({ api, node, ui }) {
     const selectOption = (index) => {
       const option = normalizedOptions[index];
       if (!option) return;
-      close();
+      close({ restoreFocus: true });
       nativeSelect.value = option.value;
       nativeSelect.dispatchEvent(new Event("change", { bubbles: true }));
     };
@@ -1822,6 +1827,7 @@ export function activate({ api, node, ui }) {
     const preview = document.createElement("div");
     preview.className = "ct-cbgp-preview";
     preview.setAttribute("data-slot", "preview");
+    preview.dataset.imageLayout = state.imageLayout;
     const url = resolveBackgroundUrl();
     if (state.kind === TRANSPARENT_BACKGROUND_KIND) {
       preview.classList.add("ct-cbgp-transparent");
@@ -2053,6 +2059,32 @@ export function activate({ api, node, ui }) {
     fileButton.setAttribute("data-slot", "file-button");
     localRow.append(localTitle, fileInput, fileButton);
     sourceSection.append(localRow);
+
+    if (state.kind !== "none" && state.kind !== TRANSPARENT_BACKGROUND_KIND) {
+      const layoutRow = document.createElement("div");
+      layoutRow.className = "ct-cbgp-row";
+      const layoutTitle = document.createElement("span");
+      layoutTitle.className = "ct-cbgp-field-label";
+      layoutTitle.textContent = isChinese ? "图片显示方式" : "Image layout";
+      const layoutSelect = createSelectControl({
+        slot: "image-layout-select",
+        value: state.imageLayout,
+        options: [
+          [DEFAULT_IMAGE_LAYOUT, isChinese ? "填满窗口" : "Fill window"],
+          ["contain", isChinese ? "完整显示" : "Fit entire image"],
+          ["tile", isChinese ? "平铺" : "Tile"],
+        ],
+        ariaLabel: layoutTitle.textContent,
+        onChange: (value) => {
+          state.imageLayout = normalizeImageLayout(value);
+          persistState();
+          applyWallpaper();
+          preview.dataset.imageLayout = state.imageLayout;
+        },
+      });
+      layoutRow.append(layoutTitle, layoutSelect);
+      sourceSection.append(layoutRow);
+    }
     container.append(sourceSection);
 
     const historySection = createSection(

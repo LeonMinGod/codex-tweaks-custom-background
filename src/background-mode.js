@@ -1,4 +1,5 @@
 export const TRANSPARENT_BACKGROUND_KIND = "transparent";
+export const DEFAULT_IMAGE_LAYOUT = "cover";
 
 const BACKGROUND_KINDS = new Set([
   "none",
@@ -10,6 +11,10 @@ const BACKGROUND_KINDS = new Set([
 
 export function normalizeBackgroundKind(kind) {
   return BACKGROUND_KINDS.has(kind) ? kind : "none";
+}
+
+export function normalizeImageLayout(layout) {
+  return layout === "contain" || layout === "tile" ? layout : DEFAULT_IMAGE_LAYOUT;
 }
 
 export function hasConfiguredBackgroundKind(kind, resolvedImageUrl) {
